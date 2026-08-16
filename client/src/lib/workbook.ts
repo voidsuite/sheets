@@ -38,15 +38,15 @@ function toUniverCell(cell: VCell): ICellData {
   return out
 }
 
-function toVs1Cell(cell: ICellData | null | undefined): VCell | null {
+function toVs1Cell(cell: ICellData | null | undefined, styles?: IWorkbookData["styles"]): VCell | null {
   if (!cell) return null
   const out: VCell = {}
-  if (cell.v !== undefined) out.v = cell.v
+  if (cell.v !== undefined) out.v = cell.v as string | number | boolean
   if (typeof cell.f === "string") out.f = cell.f
-  if (cell.t !== undefined && cell.t !== null) out.t = cell.t
+  if (cell.t !== undefined && cell.t !== null) out.t = cell.t as number
   if (cell.s) {
-    const style = typeof cell.s === "string" ? null : (cell.s as Record<string, unknown>)
-    if (style && Object.keys(style).length) out.style = style
+    const style = typeof cell.s === "string" ? styles?.[cell.s] : (cell.s as Record<string, unknown>)
+    if (style && typeof style === "object" && Object.keys(style).length) out.style = style as Record<string, unknown>
   }
   return Object.keys(out).length ? out : null
 }
@@ -97,16 +97,17 @@ export function vs1ToSnapshot(doc: VDoc, unitId: string): IWorkbookData {
     // Merges
     worksheet.mergeData = vs.merges.map(toUniverRange)
 
-    // Row heights / col widths
+    // Row heights / col widths — VS1 keys are `${row}_0` / `0_${col}` (the
+    // server's canonical shape); strip the column/row part here.
     const rowData: NonNullable<IWorksheetData["rowData"]> = {}
     for (const [key, h] of Object.entries(vs.rowHeights)) {
-      const r = Number(key)
+      const r = Number(String(key).split("_")[0])
       if (Number.isInteger(r) && typeof h === "number" && h > 0) rowData[r] = { h }
     }
     worksheet.rowData = rowData
     const columnData: NonNullable<IWorksheetData["columnData"]> = {}
     for (const [key, w] of Object.entries(vs.colWidths)) {
-      const c = Number(key)
+      const c = Number(String(key).split("_")[1])
       if (Number.isInteger(c) && typeof w === "number" && w > 0) columnData[c] = { w }
     }
     worksheet.columnData = columnData
@@ -134,6 +135,7 @@ export function vs1ToSnapshot(doc: VDoc, unitId: string): IWorkbookData {
  */
 export function snapshotToVs1(snapshot: IWorkbookData): VDoc {
   const sheets: VSheet[] = []
+  const styles = snapshot.styles ?? {}
 
   for (const sheetId of snapshot.sheetOrder ?? []) {
     const ws = snapshot.sheets?.[sheetId] as IWorksheetData | undefined
@@ -149,7 +151,7 @@ export function snapshotToVs1(snapshot: IWorkbookData): VDoc {
       for (const cStr of Object.keys(row)) {
         const c = Number(cStr)
         if (!Number.isInteger(c)) continue
-        const vc = toVs1Cell(row[c])
+        const vc = toVs1Cell(row[c], styles)
         if (vc) cells[cellKey(r, c)] = vc
       }
     }
@@ -164,12 +166,12 @@ export function snapshotToVs1(snapshot: IWorkbookData): VDoc {
     const rowHeights: Record<string, number> = {}
     for (const [rStr, rd] of Object.entries(ws.rowData ?? {})) {
       const r = Number(rStr)
-      if (Number.isInteger(r) && typeof rd?.h === "number" && rd.h > 0) rowHeights[String(r)] = rd.h
+      if (Number.isInteger(r) && typeof rd?.h === "number" && rd.h > 0) rowHeights[cellKey(r, 0)] = rd.h
     }
     const colWidths: Record<string, number> = {}
     for (const [cStr, cd] of Object.entries(ws.columnData ?? {})) {
       const c = Number(cStr)
-      if (Number.isInteger(c) && typeof cd?.w === "number" && cd.w > 0) colWidths[String(c)] = cd.w
+      if (Number.isInteger(c) && typeof cd?.w === "number" && cd.w > 0) colWidths[cellKey(0, c)] = cd.w
     }
 
     sheets.push({

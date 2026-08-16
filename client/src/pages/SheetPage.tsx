@@ -11,6 +11,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { Link, useParams } from "react-router"
 import {
   ArrowLeft,
+  Eye,
   FileSpreadsheet,
   Grid3x3,
   Loader2,
@@ -24,7 +25,7 @@ import {
 import { VoidSheetsLogo } from "@/components/VoidSheetsLogo"
 import { ShareDialog } from "@/components/share-dialog"
 import { useAuth } from "@/contexts/auth"
-import { SheetProvider } from "@/contexts/univer"
+import { SheetProvider, useSheet } from "@/contexts/univer"
 import { useToast } from "@/contexts/toast"
 import { useSettings } from "@/contexts/settings"
 import * as api from "@/lib/api"
@@ -62,6 +63,41 @@ function initials(name: string): string {
       .slice(0, 2)
       .map((p) => p[0]?.toUpperCase() ?? "")
       .join("") || "?"
+  )
+}
+
+/** Live presence: online member avatars + connection status dot. */
+function PresenceChrome() {
+  const { collab, collabPresence, collabStatus } = useSheet()
+  if (!collab) return null
+  const dot: Record<typeof collabStatus, string> = {
+    online: "bg-emerald-500",
+    connecting: "bg-amber-400 animate-pulse",
+    offline: "bg-zinc-500",
+    error: "bg-red-500",
+  }
+  const shown = collabPresence.slice(0, 4)
+  const extra = Math.max(0, collabPresence.length - shown.length)
+  return (
+    <div className="flex items-center gap-2">
+      <span className="flex items-center -space-x-1.5" title={`${collabPresence.length} online`}>
+        {shown.map((m) => (
+          <span
+            key={m.userId}
+            className="flex size-6 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground ring-2 ring-background"
+            title={m.name}
+          >
+            {initials(m.name)}
+          </span>
+        ))}
+        {extra > 0 ? (
+          <span className="flex size-6 items-center justify-center rounded-full bg-primary/10 text-[10px] font-medium text-primary ring-2 ring-background">
+            +{extra}
+          </span>
+        ) : null}
+      </span>
+      <span className={`size-2 shrink-0 rounded-full ${dot[collabStatus]}`} title={`Connection: ${collabStatus}`} />
+    </div>
   )
 }
 
@@ -156,7 +192,7 @@ export function SheetPage() {
   const editable = wb ? wb.role === "owner" || wb.role === "editor" : false
 
   return (
-    <SheetProvider runtime={runtime} wb={wb} doc={doc} version={data?.version ?? 0}>
+    <SheetProvider runtime={runtime} wb={wb} doc={doc} version={data?.version ?? 0} user={user}>
       <div className="flex h-screen flex-col bg-background">
       {/* Top bar */}
       <header className="flex h-11 shrink-0 items-center gap-2 border-b border-border px-2.5">
@@ -248,6 +284,8 @@ export function SheetPage() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <PresenceChrome />
+
           {user ? (
             <span
               className="ml-1 flex size-7 items-center justify-center rounded-full bg-muted text-[10px] font-semibold text-muted-foreground"
@@ -258,6 +296,16 @@ export function SheetPage() {
           ) : null}
         </div>
       </header>
+
+      {/* Read-only banner for viewers */}
+      {wb && !editable ? (
+        <div className="flex shrink-0 items-center gap-2 border-b border-border bg-muted/40 px-4 py-1.5 text-xs text-muted-foreground">
+          <Eye className="size-3.5 shrink-0" aria-hidden="true" />
+          <span>
+            View-only — you can watch changes as editors make them, but edits are saved by the owner and editors.
+          </span>
+        </div>
+      ) : null}
 
       {/* Grid */}
       <div className="relative min-h-0 flex-1">
