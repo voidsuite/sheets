@@ -21,7 +21,8 @@ export interface CellRef {
 export interface VCell {
   v?: unknown
   f?: string
-  t?: string
+  /** Univer CellValueType: 1 string, 2 number, 3 boolean, 4 force-string. */
+  t?: number
   numfmt?: string | null
   style?: Record<string, unknown> | null
   [key: string]: unknown
