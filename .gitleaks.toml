@@ -1,0 +1,17 @@
+# docs — gitleaks configuration.
+# Extends gitleaks' default rules; allowlists files that legitimately contain
+# high-entropy strings (lockfiles, build output).
+title = "sheets gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+paths = [
+  '''(^|/)bun\.lock$''',
+  '''(^|/)package-lock\.json$''',
+  '''(^|/)pnpm-lock\.yaml$''',
+  '''(^|/)yarn\.lock$''',
+  '''(^|/)client/dist/''',
+  '''(^|/)\.env\.example$''',
+]

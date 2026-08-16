@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    name: Typecheck, build & lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install client deps
+        working-directory: client
+        run: bun install --frozen-lockfile
+
+      - name: Install server deps
+        working-directory: server
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck + build client
+        working-directory: client
+        run: bun run build
+
+      - name: Typecheck server
+        working-directory: server
+        run: bun run typecheck
+
+      - name: Lint client
+        working-directory: client
+        run: bun run lint
+
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run gitleaks (standalone, no license required)
+        run: |
+          curl -sSfL https://github.com/gitleaks/gitleaks/releases/download/v8.24.3/gitleaks_8.24.3_linux_x64.tar.gz | tar -xz gitleaks
+          ./gitleaks detect --source . --config .gitleaks.toml --redact --verbose

@@ -1,0 +1,15 @@
+{
+  "name": "sheets",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun dev.ts",
+    "dev:client": "bun --env-file=.env run --cwd client dev",
+    "dev:server": "bun --env-file=.env run --cwd server start",
+    "typecheck": "cd client && bunx tsc -b && cd ../server && bunx tsc --noEmit",
+    "build": "cd client && bun run build && cd ../server && bun run typecheck",
+    "lint": "cd client && bun run lint",
+    "verify": "bun run typecheck && bun run build && bun run lint"
+  }
+}

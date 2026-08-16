@@ -1,0 +1,21 @@
+{
+  "name": "sheets-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Void Sheets gateway — VoidAuth session validation, REST API, SQLite store, realtime WebSocket push",
+  "type": "module",
+  "scripts": {
+    "dev": "bun --env-file=../.env --watch src/index.ts",
+    "start": "bun --env-file=../.env src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@voidauth/client": "^1.0.3",
+    "hono": "^4.9.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "~5.9.3"
+  },
+  "license": "MIT"
+}
