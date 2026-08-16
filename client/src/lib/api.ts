@@ -172,7 +172,7 @@ export function hydrateSheet(id: string): Promise<HydratedSheet> {
 }
 
 export function joinByToken(token: string): Promise<Workbook> {
-  return gateway(`/api/join/${token}`, { method: "POST" })
+  return gateway(`/api/sheets/join/${token}`, { method: "POST" })
 }
 
 // --- Sharing ---

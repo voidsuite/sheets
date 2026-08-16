@@ -58,10 +58,13 @@ app.route("/api/auth", authRoutes)
 // Everything else under /api requires a session (cookie) or bearer token.
 const api = new Hono()
 api.use("*", authRequired)
-api.route("/", sheetsRoutes)
-api.route("/", opsRoutes)
-api.route("/", versionsRoutes)
-api.route("/", vaultRoutes)
+// NOTE: Hono v4 `route("/", subApp)` does not register the sub-app's routes
+// (the parent's "/" base matches nothing) — every mount must use a non-root
+// base. All workbook routes live under /api/sheets, storage under /api/storage.
+api.route("/sheets", sheetsRoutes)
+api.route("/sheets", opsRoutes)
+api.route("/sheets", versionsRoutes)
+api.route("/sheets", vaultRoutes)
 api.route("/storage", storageRoutes)
 app.route("/api", api)
 

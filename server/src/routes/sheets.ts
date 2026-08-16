@@ -124,8 +124,8 @@ routes.get("/:id/document", (c) => {
   return c.json({ sheet: wb, vault: false, doc: loaded.doc, version: loaded.version, maxUploadBytes: config.maxUploadBytes })
 })
 
-// POST /api/join/:token — redeem a share link → becomes a member with the
-// link's role. The response includes the workbook so the client can open it.
+// POST /api/sheets/join/:token — redeem a share link → becomes a member with
+// the link's role. The response includes the workbook so the client can open it.
 routes.post("/join/:token", async (c) => {
   const { user } = getAuthUser(c)!
   const token = c.req.param("token")
