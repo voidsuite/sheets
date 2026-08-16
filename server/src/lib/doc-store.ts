@@ -16,7 +16,7 @@ const insertDoc = db.query(
   `INSERT INTO workbook_docs (workbook_id, document, version, updated_at) VALUES (?, ?, 0, ?)`
 )
 const upsertDoc = db.query(
-  `INSERT INTO workbook_docs (workbook_id, document, version, updated_at) VALUES (?, ?, ?, ?)
+  `INSERT INTO workbook_docs (document, version, updated_at, workbook_id) VALUES (?, ?, ?, ?)
    ON CONFLICT(workbook_id) DO UPDATE SET document = excluded.document, version = excluded.version, updated_at = excluded.updated_at`
 )
 const deleteDoc = db.query(`DELETE FROM workbook_docs WHERE workbook_id = ?`)
