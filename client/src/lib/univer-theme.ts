@@ -77,7 +77,7 @@ export function buildDarkTheme(): Theme {
 export function applyDarkTheme(univer: { __getInjector(): unknown }, univerAPI: { toggleDarkMode(on: boolean): void }): void {
   try {
     const injector = univer.__getInjector() as { get<T>(id: unknown): T }
-    const themeService = injector.get(ThemeService)
+    const themeService = injector.get<{ setTheme(theme: Theme): void }>(ThemeService)
     themeService.setTheme(buildDarkTheme())
   } catch {
     // ThemeService unavailable — still flip the DOM hooks below.
