@@ -21,7 +21,7 @@ routes.use("*", async (c, next) => {
 })
 
 const insertWorkbook = db.query(
-  `INSERT INTO workbooks (id, owner_id, name, vault, position, created_at, updated_at) VALUES (?, ?, ?, 0, ?, ?, ?)`
+  `INSERT INTO workbooks (id, owner_id, name, vault, created_at, updated_at) VALUES (?, ?, ?, 0, ?, ?)`
 )
 const renameWorkbook = db.query(`UPDATE workbooks SET name = ?, updated_at = ? WHERE id = ?`)
 const deleteWorkbook = db.query(`DELETE FROM workbooks WHERE id = ?`)
